@@ -66,7 +66,7 @@ GMotor motorFR(DRIVER2WIRE, MOTOR4_A, MOTOR4_B, HIGH);
 #define D27 27
 #define CAM_SERVO_PIN D27
 Servo camServo;
-int servoAngle = 0;
+int camServoAngle = 0;
 
 int maxSpeed = 170;
 bool engineEnabled = true;
@@ -91,9 +91,9 @@ void build(sets::Builder& b) {
 
     b.HTML("", "<div style='text-align:center;'><img src='http://192.168.4.1:81/stream' style='width:100%; max-width:600px; border-radius:10px; border: 2px solid #333;'></div>");
 
-    if (b.Slider("Camera Servo", 0, 180, 1, "", &servoAngle))
+    if (b.Slider("Camera Servo", 0, 180, 1, "", &camServoAngle))
     {
-        camServo.write(servoAngle);
+        camServo.write(camServoAngle);
     }
 
     if (b.Slider("Max Speed", 30, 255, 1, "", &maxSpeed))
@@ -290,8 +290,8 @@ void setup() {
     delay(100);
     digitalWrite(BLINK_PIN, LOW);
 
-    camServo.attach(D27); 
-    camServo.write(servoAngle); // Ставим в начальное положение
+    camServo.attach(CAM_SERVO_PIN); 
+    camServo.write(camServoAngle);
 
     // WiFi.softAP(ssid, password);
 
