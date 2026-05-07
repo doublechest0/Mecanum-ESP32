@@ -5,7 +5,9 @@
 #include <Arduino.h>
 #include <SettingsGyver.h>
 #include <GyverMotor.h>
+
 #include <ESP32Servo.h>
+#include <ESP32Encoder.h>
 
 const char* ssid = "ESP32";
 const char* password = "12345678";
@@ -44,9 +46,21 @@ sets::Pos joystick2;
 #define MOTOR4_A D23
 #define MOTOR4_B D22  // ШИМ!
 
+#define D35 35
+#define ENCODER_FL_PIN D35
+ESP32Encoder encoderFL;
 GMotor motorFL(DRIVER2WIRE, MOTOR1_A, MOTOR1_B, HIGH);
+#define D5 5
+#define ENCODER_BR_PIN D5
+ESP32Encoder encoderBR;
 GMotor motorBR(DRIVER2WIRE, MOTOR2_A, MOTOR2_B, HIGH);
+#define D15 15
+#define ENCODER_BL_PIN D15
+ESP32Encoder encoderBL;
 GMotor motorBL(DRIVER2WIRE, MOTOR3_A, MOTOR3_B, HIGH);
+#define D34 34
+#define ENCODER_FR_PIN D34
+ESP32Encoder encoderFR;
 GMotor motorFR(DRIVER2WIRE, MOTOR4_A, MOTOR4_B, HIGH);
 
 #define D27 27
@@ -67,7 +81,13 @@ void stopMotors() {
 // Интерфейс
 
 void build(sets::Builder& b) {
-    b.Label("Camera");
+    if (b.beginRow("", sets::DivType::Line)) {
+        b.Label("encoder_fl"_h, "FL");
+        b.Label("encoder_fr"_h, "FR");
+        b.Label("encoder_bl"_h, "BL");
+        b.Label("encoder_br"_h, "BR");
+        b.endRow();
+    }
 
     b.HTML("", "<div style='text-align:center;'><img src='http://192.168.4.1:81/stream' style='width:100%; max-width:600px; border-radius:10px; border: 2px solid #333;'></div>");
 
@@ -210,6 +230,14 @@ void build(sets::Builder& b) {
     }
 }
 
+void update(sets::Updater& upd) {
+    upd.update("encoder_fl"_h, encoderFL.getCount()/20);
+    upd.update("encoder_fr"_h, encoderFR.getCount()/20);
+    upd.update("encoder_bl"_h, encoderBL.getCount()/20);
+    upd.update("encoder_br"_h, encoderBR.getCount()/20);
+}
+
+
 void driveRobot() {
     int valLX = map(joystick1.x, -255, 255, -maxSpeed, maxSpeed);
     int valLY = map(joystick1.y, 255, -255, -maxSpeed, maxSpeed);
@@ -269,6 +297,7 @@ void setup() {
 
     sett.begin(false, "mecanum");
     sett.onBuild(build);
+    sett.onUpdate(update);
     sett.setPass("123");
 
   #if (MOTOR_TEST == 1)
@@ -309,6 +338,15 @@ void setup() {
     motorBR.setSmoothSpeed(60);
     motorFL.setSmoothSpeed(60);
     motorBL.setSmoothSpeed(60);
+
+    encoderFL.attachSingleEdge(ENCODER_FL_PIN, -1); 
+    encoderFL.setCount(0);
+    encoderBL.attachSingleEdge(ENCODER_BL_PIN, -1); 
+    encoderBL.setCount(0);
+    encoderBR.attachSingleEdge(ENCODER_BR_PIN, -1); 
+    encoderBR.setCount(0);
+    encoderFR.attachSingleEdge(ENCODER_FR_PIN, -1); 
+    encoderFR.setCount(0);
 }
 
 void loop() {
